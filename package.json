@@ -14,9 +14,12 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "location": "^0.0.1",
+    "navigator": "^1.0.1",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
-    "vux": "^2.7.9"
+    "vux": "^2.7.9",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
@@ -51,6 +54,7 @@
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^2.30.1",
+    "jQuery": "1.7.4",
     "jest": "^22.0.4",
     "jest-serializer-vue": "^0.3.0",
     "less": "^3.0.1",
