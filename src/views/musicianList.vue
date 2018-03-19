@@ -7,27 +7,14 @@
           <img :src="coverImgUrl" class="coverImg">
           <div class="listIntro">
             <p class="listNm">{{listNm}}</p>
-            <p class="nickname">
-              {{creator.nickname}}
-              <img src="/static/icon/right.png">
-            </p>
-            <p>
-              <span v-for="item in listTags" :if="item">{{item}}#</span>
-            </p>
+            <div class="listDescription" :if="listDescription">{{listDescription}}</div>
           </div>
         </div>
-        <div class="listDescription" :if="listDescription">{{listDescription}}</div>
       </header>
-      <div v-for="(item,index) in topList" class="albumList" @click="playMusic(index,item.id,item.al.picUrl,item.name,item.ar)">
+      <div v-for="(item,index) in hotSongs" class="albumList" @click="playMusic(index,item.id,item.al.picUrl,item.name,item.ar)">
         <span style="width:30px;text-align:center;">{{index+1+'、'}}</span>
-        <img :src="item.al.picUrl">
         <p>
           <span class="musicNm">{{item.name}}</span>
-          <br>
-          <span class="musician">
-          歌手：
-            <template v-for="(siginal,index) in item.ar">{{siginal.name}}{{item.ar.length==(1+index)?'':'、'}}</template>
-          </span>
         </p>
       </div>
     </div>
@@ -48,32 +35,28 @@ export default {
   },
   data() {
     return {
-      topList: [],
+      hotSongs: [],
       coverImgUrl: "",
-      creator: {},
       listNm: "",
       listDescription: "",
-      listTags: [],
-      topNm: this.$route.params.topNm,
       musicid: "",
       musicurl: "",
-      musicimg: ""
+      musicimg: "",
+      topNm:this.$route.params.name
     };
   },
   mounted() {
     var that = this;
     $.ajax({
-      url: that.GLOBAL.commonParams.serveSrc+'/top/list',
+      url: that.GLOBAL.commonParams.serveSrc+'/artists',
       type: 'get',
       dataType: 'json',
-      data: { idx: that.$route.params.idx },
+      data: { id: that.$route.params.id },
       success: function(data) {
-        that.coverImgUrl = data.playlist.coverImgUrl;
-        that.creator = data.playlist.creator;
-        that.listNm = data.playlist.name;
-        that.listTags = data.playlist.tags;
-        that.listDescription = data.playlist.description;
-        that.topList = data.playlist.tracks;
+        that.coverImgUrl = data.artist.img1v1Url;
+        that.listNm = data.artist.name;
+        that.listDescription = data.artist.briefDesc;
+        that.hotSongs=data.hotSongs;
       },
       error: function(err) {}
     });
@@ -96,8 +79,8 @@ export default {
                   url: data.data[0].url,
                   artists:artists,
                   name:name,
-                  topList:that.topList,
-                  listId:that.$route.params.idx,
+                  topList:that.hotSongs,
+                  listId:that.$route.params.id,
                   MusicIndex:index
                 }
               });
@@ -139,17 +122,6 @@ export default {
           font-size: 14px;
           font-weight: bold;
         }
-        .nickname {
-          border-radius: 10px;
-          margin: 5px 0;
-          padding: 1px 5px;
-          display: inline-block;
-          background: rgba(256, 256, 256, 0.8);
-          background-repeat: no-reapeat;
-          img {
-            height: 10px;
-          }
-        }
       }
     }
     .listDescription {
@@ -158,33 +130,22 @@ export default {
       text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
     }
   }
   .albumList {
     display: flex;
     padding: 10px;
     box-shadow: 0 1px 1px #ddd;
-    img {
+    span {
       flex: 1;
-      height: 35px;
-      width: 35px;
     }
     p {
       flex: 8;
-      padding-left: 10px;
+      padding-left: 15px;
       .musicNm {
         font-size: 13px;
         font-weight: bolder;
-      }
-      .musician,
-      .album {
-        color: #666;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
       }
     }
   }
