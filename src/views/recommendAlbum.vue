@@ -26,7 +26,6 @@
           <span class="musician">歌手：
             <template v-for="(siginal,index) in item.artists" v-if="item.artists">{{siginal.name}}{{item.artists.length==(1+index)?'':'、'}}</template>
           </span>
-
           <br>
           <span class="album">专辑：{{item.album.name}}</span>
         </p>
@@ -35,79 +34,64 @@
   </div>
 </template>
 <script>
-import { XHeader } from 'vux';
+import { XHeader } from 'vux'
+import { mapActions } from 'vuex'
 export default {
-  props: {
-    title: { // 标题
-      type: String,
-      default: '标题'
-    }
-  },
   components: {
     XHeader
   },
-  data() {
+  data () {
     return {
       albumList: [],
-      coverImgUrl: "",
+      coverImgUrl: '',
       creator: {},
-      listNm: "",
-      listDescription: "",
+      listNm: '',
+      listDescription: '',
       listTags: [],
-      musicid: "",
-      musicurl: "",
-      musicimg: ""
-    };
-  },
-  mounted() {
-    var that = this;
-    $.ajax({
-      url: that.GLOBAL.commonParams.serveSrc + '/playlist/detail?id=' + that.$route.params.albumId,
-      type: 'get',
-      dataType: 'json',
-      data: {},
-      success: function(data) {
-        that.coverImgUrl = data.result.coverImgUrl;
-        that.creator = data.result.creator;
-        that.listNm = data.result.name;
-        that.listTags = data.result.tags;
-        that.listDescription = data.result.description;
-        that.albumList = data.result.tracks;
-      },
-      error: function(err) {}
-    });
-  },
-  methods: {
-    playMusic(index,ids, img, name, artists) {
-      var that = this;
-      that.musicId = ids;
-      that.musicimg = img;
-      $.ajax({
-        url: that.GLOBAL.commonParams.serveSrc + '/music/url',
-        type: 'get',
-        dataType: 'json',
-        data: { id: that.musicId },
-        success: function(data) {
-          that.$router.push({
-            name: 'play',
-            params: {
-              ids: ids,
-              url: data.data[0].url,
-              artists: artists,
-              name: name,
-              topList: that.albumList,
-              listId: that.$route.params.albumId,
-              MusicIndex:index
-            }
-          });
-        },
-        error: function(err) {}
-      });
+      musicid: '',
+      musicurl: '',
+      musicimg: ''
     }
   },
-  created() {},
+  methods: {
+    ...mapActions(['commit_artists', 'commit_topList']),
+    playMusic (index, ids, img, name, artists) {
+      this.musicId = ids
+      this.musicimg = img
+      this.http.$get({
+        url: this.$store.state.serveSrc + '/music/url',
+        data: { id: this.musicId }
+      }).then(res => {
+        this.commit_artists(artists)
+        this.$router.push({
+          name: 'play',
+          query: {
+            ids: ids,
+            url: encodeURIComponent(res.data[0].url),
+            name: name,
+            listId: this.$route.params.albumId,
+            MusicIndex: index
+          }
+        })
+      })
+    }
+  },
+  created () {
+    this.http.$get({
+      url: this.$store.state.serveSrc + '/playlist/detail?id=' + this.$route.params.albumId,
+      data: {}
+    }).then(res => {
+      this.coverImgUrl = res.result.coverImgUrl
+      this.creator = res.result.creator
+      this.listNm = res.result.name
+      this.listTags = res.result.tags
+      this.listDescription = res.result.description
+      this.albumList = res.result.tracks
+      this.commit_topList(this.albumList)
+    })
+  },
   computed: {}
-};
+}
 
 </script>
 <style lang="less" scoped>

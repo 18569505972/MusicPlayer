@@ -2,19 +2,19 @@
   <div class="container">
     <x-header id="x-header">
       {{musicNm}}&nbsp;
-      <template v-for="(siginal,index) in musician" v-if="musician">{{siginal.name}}{{musician.length==(1+index)?'':'、'}}</template>
+      <template v-for="(siginal,index) in artistsList" v-if="artistsList">{{siginal.name}}{{artistsList.length==(1+index)?'':'、'}}</template>
     </x-header>
-    <section>
-      <p v-for="item in lyric" :data-timeline="item.match(/\d{2}:\d{2}.\d{2}/g)" class="lyricline">{{item.replace(/\d{2}:\d{2}.\d{2,}/g,'')}}</p>
+    <section ref="section">
+      <p v-for="(item,index) in lyric" :data-timeline="item.match(/\d{2}:\d{2}.\d{2}/g)" :class="['lyricline',{'red':lyricIndex == index}]">{{item.replace(/\d{2}:\d{2}.\d{2,}/g,'')}}</p>
     </section>
     <p class="progress" id="slide" v-bind:style="{width:musicPercent}" @click="setProgress($event)"></p>
     <p class="progress" id="buffer" v-bind:style="{width:bufferPercent}" @click="setProgress($event)"></p>
     <p class="progress" @click="setProgress($event)"></p>
     <footer>
       <div class="playType">
-        <img src="/static/icon/loopPlay.png" class="hideImg" style="display:inline-block" data-type="0" @click="changePlayType($event)">
-        <img src="/static/icon/singlePlay.png" class="hideImg" data-type="1" @click="changePlayType($event)">
-        <img src="/static/icon/randomPlay.png" class="hideImg" data-type="2" @click="changePlayType($event)">
+        <img v-show="showimg==0" src="/static/icon/loopPlay.png" style="display:inline-block" data-type="0" @click="changePlayType($event)">
+        <img v-show="showimg==1" src="/static/icon/singlePlay.png" data-type="1" @click="changePlayType($event)">
+        <img v-show="showimg==2" src="/static/icon/randomPlay.png" data-type="2" @click="changePlayType($event)">
       </div>
       <p>
         <img src="/static/icon/prev.png" id="prev" @click="prevPlay">
@@ -32,222 +32,203 @@
         <span>{{item.name}}</span>
       </p>
     </div>
-    <audio :src="url" @timeupdate="lyricStep" @onended="autoChange" @progress="bufferProgress"></audio>
+    <audio :src="url" @timeupdate="lyricStep" @ended="autoChange" @progress="bufferProgress" ref="audio"></audio>
   </div>
 </template>
 <script>
-import { XHeader } from 'vux';
+import { XHeader } from 'vux'
+import { mapGetters } from 'vuex'
 export default {
-  props: {
-    musicurl: {
-      type: String,
-      default: ''
-    },
-    musicimg: {
-      type: String,
-      default: ''
-    },
-    musicid: {
-      type: String,
-      default: ''
-    },
-
-  },
   components: {
     XHeader
   },
   data() {
     return {
-      musicNm: this.$route.params.name, //歌曲名
-      musician: this.$route.params.artists, //歌手数组
-      url: this.$route.params.url, //歌曲url
-      playStatus: true, //播放暂停切换
-      lyric: [], //歌词
-      toplist: this.$route.params.topList, //歌单列表
-      MusicIndex: this.$route.params.MusicIndex, //歌曲序号
-      ids: this.$route.params.ids, //歌曲id
-      listStatus: false, //控制歌单列表显隐
-      changeType: 0, //切换方式:0 循环 ，1 单曲，2 随机
-      bufferPercent: '0%', //缓存进度
-      musicPercent:"0%"  //播放进度
-    };
+      musicNm: this.$route.query.name, // 歌曲名
+      url: decodeURIComponent(this.$route.query.url), // 歌曲url
+      playStatus: true, // 播放暂停切换
+      lyric: [], // 歌词
+      lyricIndex: 0,
+      MusicIndex: this.$route.query.MusicIndex, // 歌曲序号
+      ids: this.$route.query.ids, // 歌曲id
+      listStatus: false, // 控制歌单列表显隐
+      changeType: 0, // 切换方式:0 循环 ，1 单曲，2 随机
+      bufferPercent: '0%', // 缓存进度
+      musicPercent: '0%', // 播放进度
+      showimg: 0 // 控制展示图片
+    }
+  },
+  created() {
+    this.lyric = this.GLOBAL.commonParams.getLyric(this)
   },
   mounted() {
-    var that = this;
-    that.lyric = that.GLOBAL.commonParams.getLyric(that);
-
   },
   methods: {
     playAndPause() {
-      var audio = $("audio").get(0);
+      var audio = this.$refs.audio
       if (audio.paused) {
-        this.playStatus = false;
-        audio.play();
+        this.playStatus = false
+        audio.play()
       } else {
-        this.playStatus = true;
-        audio.pause();
+        this.playStatus = true
+        audio.pause()
       }
     },
     lyricStep(e) {
-      var currentTime = e.target.currentTime.toFixed(2);
-      var duration=e.target.duration.toFixed(2);
-      this.musicPercent=((currentTime/duration)*100).toFixed(3)+"%";
+      var currentTime = e.target.currentTime.toFixed(2)
+      var duration = e.target.duration.toFixed(2)
+      this.musicPercent = ((currentTime / duration) * 100).toFixed(3) + '%'
       if (this.lyric) {
-        var str = ".lyricline";
-        $(str).each(function(index) {
-          var lyricTime = $(this).attr("data-timeline");
+        var lyriclines = document.querySelectorAll('.lyricline')
+        lyriclines.forEach((item, index) => {
+          var lyricTime = item.getAttribute('data-timeline')
           if (lyricTime) {
-            lyricTime = lyricTime.split(":");
-            lyricTime = parseInt(lyricTime[0]) * 60 + parseFloat(lyricTime[1]);
-            console.log("222")
+            lyricTime = lyricTime.split(':')
+            lyricTime = parseInt(lyricTime[0]) * 60 + parseFloat(lyricTime[1])
             if (currentTime >= lyricTime) {
-              $(".lyricline").removeClass('red');
-              $(this).addClass('red');
-              $("section").get(0).scrollTop = $(this).get(0).offsetTop - 200;
-              return;
+              this.lyricIndex = index
+              this.$refs.section.scrollTop = item.offsetTop - 200
+              return
             }
           }
         })
       }
     },
     nexPlay() {
-      $(".lyricline").removeClass('red');
-      var that = this;
-      that.playStatus = false;
-      var audio = $("audio").get(0);
-      if (that.changeType == 0) {
-        if (that.MusicIndex != (that.toplist.length - 1)) {
-          that.GLOBAL.commonParams.musicToggle(that, audio, 0);
+      this.lyricIndex = 0
+      var audio = this.$refs.audio
+      if (this.changeType == 0) {
+        if (this.MusicIndex != (this.toplist.length - 1)) {
+          this.GLOBAL.commonParams.musicToggle(this, audio, 0)
         } else {
-          that.MusicIndex = 0;
-          that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+          this.MusicIndex = 0
+          this.GLOBAL.commonParams.musicToggle(this, audio, 2)
         }
-      } else if (that.changeType == 1) {
-        audio.load();
-        audio.play();
+      } else if (this.changeType == 1) {
+        var isLoadAudio = audio.load()
+        if (isLoadAudio !== undefined) {
+          isLoadAudio.then(() => {
+            audio.play()
+          }).catch(() => {
+            alert('未知播放源')
+          })
+        }
       } else {
-        var random = Math.floor(Math.random() * that.toplist.length);
-        random = (random == that.MusicIndex) ? (Math.floor(Math.random() * that.toplist.length)) : random;
-        that.MusicIndex = random;
-        that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+        var random = Math.floor(Math.random() * this.toplist.length)
+        random = (random == this.MusicIndex) ? (Math.floor(Math.random() * this.toplist.length)) : random
+        this.MusicIndex = random
+        this.GLOBAL.commonParams.musicToggle(this, audio, 2);
       }
     },
     prevPlay() {
-      $(".lyricline").removeClass('red');
-      var that = this;
-      that.playStatus = false;
-      var audio = $("audio").get(0);
-      if (that.changeType == 0) {
-        if (that.MusicIndex != 0) {
-          that.GLOBAL.commonParams.musicToggle(that, audio, 1);
+      this.lyricIndex = 0
+      var audio = this.$refs.audio
+      if (this.changeType == 0) {
+        if (this.MusicIndex != 0) {
+          this.GLOBAL.commonParams.musicToggle(this, audio, 1)
         } else {
-          that.MusicIndex = that.toplist.length - 1;
-          that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+          this.MusicIndex = this.toplist.length - 1
+          this.GLOBAL.commonParams.musicToggle(this, audio, 2)
         }
-      } else if (that.changeType == 1) {
-        audio.load();
-        audio.play();
+      } else if (this.changeType == 1) {
+        var isLoadAudio = audio.load()
+        if (isLoadAudio !== undefined) {
+          isLoadAudio.then(() => {
+            audio.play()
+          }).catch(() => {
+            alert('未知播放源')
+          })
+        }
       } else {
-        var random = Math.floor(Math.random() * that.toplist.length);
-        random = (random == that.MusicIndex) ? (Math.floor(Math.random() * that.toplist.length)) : random;
-        that.MusicIndex = random;
-        that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+        var random = Math.floor(Math.random() * this.toplist.length);
+        random = (random == this.MusicIndex) ? (Math.floor(Math.random() * this.toplist.length)) : random
+        this.MusicIndex = random
+        this.GLOBAL.commonParams.musicToggle(this, audio, 2)
       }
     },
     showList() {
       if (this.listStatus) {
-        this.listStatus = false;
+        this.listStatus = false
       } else {
-        this.listStatus = true;
+        this.listStatus = true
       }
     },
     shadowHide() {
-      this.listStatus = false;
+      this.listStatus = false
     },
     playList(index) {
-      $(".lyricline").removeClass('red');
-      var that = this;
-      var audio = $("audio").get(0);
-      that.MusicIndex = index;
-      this.listStatus = false;
-      that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+      this.lyricIndex = 0
+      var audio = this.$refs.audio
+      this.MusicIndex = index
+      this.listStatus = false
+      this.GLOBAL.commonParams.musicToggle(this, audio, 2)
     },
     autoChange() {
-      $(".lyricline").removeClass('red');
-      var that = this;
-      that.playStatus = false;
-      var audio = $("audio").get(0);
-      if (that.changeType == 0) {
-        if (that.MusicIndex != (that.toplist.length - 1)) {
-          that.GLOBAL.commonParams.musicToggle(that, audio, 0);
+      this.lyricIndex = 0
+      var audio = this.$refs.audio
+      this.playStatus = false
+      if (this.changeType == 0) {
+        if (this.MusicIndex != (this.toplist.length - 1)) {
+          this.GLOBAL.commonParams.musicToggle(this, audio, 0)
         } else {
-          that.MusicIndex = 0;
-          that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+          this.MusicIndex = 0
+          this.GLOBAL.commonParams.musicToggle(this, audio, 2)
         }
-      } else if (that.changeType == 1) {
-        audio.load();
-        audio.play();
+      } else if (this.changeType == 1) {
+        var isLoadAudio = audio.load()
+        audio.play()
       } else {
-        var random = Math.floor(Math.random() * that.toplist.length);
-        random = (random == that.MusicIndex) ? (Math.floor(Math.random() * that.toplist.length)) : random;
-        that.MusicIndex = random;
-        that.GLOBAL.commonParams.musicToggle(that, audio, 2);
+        var random = Math.floor(Math.random() * this.toplist.length)
+        random = (random == this.MusicIndex) ? (Math.floor(Math.random() * this.toplist.length)) : random
+        this.MusicIndex = random
+        this.GLOBAL.commonParams.musicToggle(this, audio, 2)
       }
     },
     changePlayType(event) {
-      var that = this;
-      $(".playType img").hide();
-      if (that.changeType == 0) {
-        $(".playType img").each(function() {
-          if ($(this).attr("data-type") == 1) {
-            $(this).show();
-            that.changeType = 1;
-          }
-        })
-      } else if (that.changeType == 1) {
-        $(".playType img").each(function() {
-          if ($(this).attr("data-type") == 2) {
-            $(this).show();
-            alert("循环")
-            that.changeType = 2;
-          }
-        })
+      if (this.showimg == 0) {
+        this.showimg = 1
+        this.changeType = 1
+      } else if (this.showimg == 1) {
+        this.showimg = 2
+        this.changeType = 2
       } else {
-        $(".playType img").each(function() {
-          if ($(this).attr("data-type") == 0) {
-            $(this).show();
-            that.changeType = 0;
-          }
-        })
+        this.showimg = 0
+        this.changeType = 0
       }
     },
     bufferProgress() {
-      var that=this;
-      //以缓冲对象
-      var timeRanges = $("audio").get(0).buffered;
-      if(timeRanges){
-          //以缓冲时间
-          var timeBuffer = timeRanges.end(timeRanges.length - 1);
+      // 以缓冲对象
+      var timeRanges = this.$refs.audio.buffered
+      if (timeRanges.length > 1) {
+        // 以缓冲时间
+        var timeBuffer = timeRanges.end(timeRanges.length - 1)
       }
-      //当前缓存百分比
-      that.bufferPercent = (timeBuffer / $("audio").get(0).duration).toFixed(3) * 100 + "%";
+      // 当前缓存百分比
+      this.bufferPercent = (timeBuffer / this.$refs.audio.duration).toFixed(3) * 100 + '%'
     },
-    setProgress(e){
-        var audio=$("audio").get(0);
-        var TimeRanges =audio.seekable;
-        var setPercent=(e.clientX/document.body.clientWidth).toFixed(2);
-        var setProgress=setPercent*(audio.duration.toFixed(2));
-        if('fastSeek' in audio){
-            audio.fastSeek(setProgress);//改变audio.currentTime的值
-        }else{
-            audio.currentTime=setProgress;
-        }
-        this.musicPercent=setPercent*100+"%";
+    setProgress(e) {
+      var audio = this.$refs.audio
+      // var TimeRanges = audio.seekable
+      var setPercent = (e.clientX / document.body.clientWidth).toFixed(2)
+      var setProgress = setPercent * (audio.duration.toFixed(2))
+      if ('fastSeek' in audio) {
+        audio.fastSeek(setProgress) // 改变audio.currentTime的值
+      } else {
+        audio.currentTime = setProgress
+      }
+      this.musicPercent = setPercent * 100 + '%'
     }
   },
-  created() {},
-  computed: {}
-};
+  computed: {
+    ...mapGetters(['get_artists', 'get_topList']),
+    artistsList() {
+      return this.get_artists
+    },
+    toplist() {
+      return this.get_topList
+    }
+  }
+}
 
 </script>
 <style lang="less" scoped>
@@ -294,13 +275,14 @@ section {
 }
 
 #buffer {
-  z-index: 14; 
-  background: rgba(150,150,150,0.3);;
+  z-index: 14;
+  background: rgba(150, 150, 150, 0.3);
+  ;
 }
 
 #slide {
   z-index: 16;
-  background:#0F0;
+  background: #0F0;
 }
 
 footer {

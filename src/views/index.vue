@@ -76,21 +76,16 @@
   </div>
 </template>
 <script>
-import { Tab, TabItem, Flexbox, FlexboxItem } from 'vux';
+import { Tab, TabItem, Flexbox, FlexboxItem } from 'vux'
+import { mapMutations } from 'vuex'
 export default {
-  props: {
-    title: { // 标题
-      type: String,
-      default: '标题'
-    }
-  },
   components: {
     Tab,
     TabItem,
     Flexbox,
     FlexboxItem
   },
-  data() {
+  data () {
     return {
       recommengList: [],
       isIntro: 1,
@@ -99,115 +94,97 @@ export default {
       createList: [],
       upList: [],
       musicianList: []
-    };
+    }
   },
-  mounted() {
-    var that = this;
-    $.ajax({
-      url: that.GLOBAL.commonParams.serveSrc + '/personalized',
-      type: 'get',
-      dataType: 'json',
-      data: {},
-      success: function(data) {
-        that.recommengList = data.result;
-      },
-      error: function(err) {}
-    });
+  created () {
+    // 获取推荐歌单
+    this.http.$get({
+      url: this.$store.state.serveSrc + '/personalized',
+      data: {}
+    }).then(res => {
+      this.recommengList = res.result
+    })
   },
   methods: {
-    jumpRecommendAlbum(id) {
+    ...mapMutations(['update_topNm']),
+    jumpRecommendAlbum (id) {
       this.$router.push({
         name: 'recommendAlbum',
         params: {
           albumId: id
         }
-      });
+      })
     },
-    topList() {
-      var that = this;
-      that.isIntro = 2;
-      if (!that.newList[0]) {
-        $.ajax({
-          url: that.GLOBAL.commonParams.serveSrc + '/top/list',
-          type: 'get',
-          dataType: 'json',
-          data: { idx: 0, type: 2 },
-          success: function(data) {
-            that.newList = data.playlist.tracks.slice(0, 3);
-          },
-          error: function(err) {}
-        });
-        $.ajax({
-          url: that.GLOBAL.commonParams.serveSrc + '/top/list',
-          type: 'get',
-          dataType: 'json',
-          data: { idx: 1, type: 2 },
-          success: function(data) {
-            that.hotList = data.playlist.tracks.slice(0, 3);
-          },
-          error: function(err) {}
-        });
-        $.ajax({
-          url: that.GLOBAL.commonParams.serveSrc + '/top/list',
-          type: 'get',
-          dataType: 'json',
-          data: { idx: 2, type: 2 },
-          success: function(data) {
-            that.createList = data.playlist.tracks.slice(0, 3);
-          },
-          error: function(err) {}
-        });
-        $.ajax({
-          url: that.GLOBAL.commonParams.serveSrc + '/top/list',
-          type: 'get',
-          dataType: 'json',
-          data: { idx: 3, type: 2 },
-          success: function(data) {
-            that.upList = data.playlist.tracks.slice(0, 3);
-          },
-          error: function(err) {}
-        });
+    topList () {
+      this.isIntro = 2
+      if (!this.newList[0]) {
+        this.http.$get({
+          url: this.$store.state.serveSrc + '/top/list',
+          data: { idx: 0, type: 2 }
+        }).then(res1 => {
+          this.newList = res1
+        }).catch(err => {
+          alert(0 + err)
+        })
+        this.http.$get({
+          url: this.$store.state.serveSrc + '/top/list',
+          data: { idx: 1, type: 2 }
+        }).then(res1 => {
+          this.hotList = res1
+        }).catch(err => {
+          alert(0 + err)
+        })
+        this.http.$get({
+          url: this.$store.state.serveSrc + '/top/list',
+          data: { idx: 2, type: 2 }
+        }).then(res1 => {
+          this.createList = res1
+        }).catch(err => {
+          alert(0 + err)
+        })
+        this.http.$get({
+          url: this.$store.state.serveSrc + '/top/list',
+          data: { idx: 3, type: 2 }
+        }).then(res1 => {
+          this.upList = res1
+        }).catch(err => {
+          alert(0 + err)
+        })
       }
     },
-    getMusicianList() {
-      var that = this;
-      that.isIntro = 3;
-      $.ajax({
-        url: that.GLOBAL.commonParams.serveSrc + '/toplist/artist',
-        type: 'get',
-        dataType: 'json',
-        data: {},
-        success: function(data) {
-          that.musicianList = data.list.artists;
-        },
-        error: function(err) {}
-      });
+    getMusicianList () {
+      this.isIntro = 3
+      this.http.$get({
+        url: this.$store.state.serveSrc + '/toplist/artist',
+        data: {}
+      }).then(res => {
+        this.musicianList = res.list.artists
+      })
     },
-    introList() {
-      this.isIntro = 1;
+    introList () {
+      this.isIntro = 1
     },
-    jumpTopList(idx, topNm) {
+    jumpTopList (idx, topNm) {
+      this.update_topNm(topNm)
       this.$router.push({
         name: 'topList',
-        params: {
-          idx: idx,
-          topNm: topNm
+        query: {
+          idx: idx
         }
-      });
+      })
     },
-    jumpMusicianList(id,topNm) {
+    jumpMusicianList (id, topNm) {
+      this.update_topNm(topNm)
       this.$router.push({
         name: 'musicianList',
-        params: {
-          id: id,
-          name: topNm
+        query: {
+          id: id
         }
-      });
+      })
     }
   },
-  created() {},
   computed: {}
-};
+}
 
 </script>
 <style lang="less" scoped>
@@ -275,7 +252,13 @@ section {
       flex: 2;
       align-self: center;
       p {
+        display: -webkit-box;
         padding: 0 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
       }
       p:nth-child(2) {
         padding: 15px 10px;

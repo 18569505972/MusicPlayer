@@ -1,4 +1,5 @@
 'use strict'
+// 检查NodeJS和npm的版本
 require('./check-versions')()
 
 process.env.NODE_ENV = 'production'

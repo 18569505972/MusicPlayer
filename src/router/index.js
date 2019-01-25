@@ -21,17 +21,17 @@ export default new Router({
       component: recommendAlbum
     },
     {
-      path: '/topList/:idx/:topNm',
+      path: '/topList',
       name: 'topList',
       component: topList
     },
     {
-      path: '/playMusic/:ids/:url/:artists/:name/:listId/:topList/:MusicIndex',
+      path: '/playMusic',
       name: 'play',
       component: play
     },
     {
-      path: '/musicianList/:id/:name',
+      path: '/musicianList',
       name: 'musicianList',
       component: musicianList
     }

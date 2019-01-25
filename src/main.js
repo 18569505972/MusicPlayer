@@ -3,19 +3,19 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-import play from '@/components/play'
-import publicVar from '@/components/global'
+import store from  './store'
+import publicVar from '@/components/global' 
+import axios from './lib/http'
 
 Vue.config.productionTip = false
-
-Vue.component("playMusic", play)
-
-Vue.prototype.GLOBAL=publicVar;
+Vue.prototype.GLOBAL = publicVar
+Vue.prototype.http = axios
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
+  store,
   components: { App },
   template: '<App/>'
 })
