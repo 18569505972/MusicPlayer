@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import toast from './module/toast'
 Vue.use(Vuex)
 const state = {
-  serveSrc: 'http://114.115.139.24:80/api',
+  serveSrc: 'http://localhost:8080/api',
   // header标题
   topNm: '',
   // 作者
