@@ -3,6 +3,7 @@ const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const vuxLoader = require('vux-loader')
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -77,6 +78,9 @@ const webpackConfig = {
       }
     ]
   },
+  plugins: [
+    new VueLoaderPlugin()
+  ],
   node: {
     // prevent webpack from injecting useless setImmediate polyfill because Vue
     // source contains it (although only uses it if it's native).

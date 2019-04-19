@@ -4,7 +4,7 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import store from  './store'
-import publicVar from '@/components/global' 
+import publicVar from '@/mixin/global' 
 import axios from './lib/http'
 
 Vue.config.productionTip = false
