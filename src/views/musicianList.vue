@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <x-header id="x-header">{{topnm}}</x-header>
+  <div id="artistPage">
+    <pageHead></pageHead>
     <div class="recommendList">
       <header>
         <div class="header-top">
@@ -18,20 +18,17 @@
         </p>
       </div>
     </div>
-    <!--<playMusic :musicurl="musicurl" :musicid="musicid" :musicimg="musicimg"></playMusic>-->
   </div>
 </template>
 <script>
-import { XHeader } from 'vux'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 export default {
   components: {
-    XHeader
   },
   data () {
     return {
       hotSongs: [],
-      coverImgUrl: '',
+      coverImgUrl: require('@/assets/icon/alt.png'),
       listNm: '',
       listDescription: '',
       musicid: '',
@@ -40,100 +37,111 @@ export default {
     }
   },
   created () {
-    this.http.$get({
-      url: this.$store.state.serveSrc + '/artists',
+    this.$http.$get({
+      url: '/artists',
       data: { id: this.$route.query.id }
     }).then(res => {
-      this.coverImgUrl = res.artist.img1v1Url
-      this.listNm = res.artist.name
-      this.listDescription = res.artist.briefDesc
-      this.hotSongs = res.hotSongs
-      this.commit_topList(res.hotSongs)
+      if (res) {
+        this.coverImgUrl = res.artist.img1v1Url
+        this.listNm = res.artist.name
+        this.listDescription = res.artist.briefDesc
+        this.hotSongs = res.hotSongs
+        this.commit_topList(res.hotSongs)
+      } else {
+        this.$message.error('获取歌单失败')
+      }
     })
-  },
+  }, 
   methods: {
-    ...mapActions(['commit_artists', 'commit_topList']),
+    ...mapActions(['commit_topList', 'commit_playObj']),
     playMusic (index, ids, img, name, artists) {
       this.musicId = ids
       this.musicimg = img
-      this.http.$get({
-        url: this.$store.state.serveSrc + '/music/url',
+      this.$http.$get({
+        url: '/music/url',
         data: { id: this.musicId }
       }).then(res => {
-        this.commit_artists(artists)
-        this.$router.push({
-          name: 'play',
-          query: {
+        if (res) {
+          let obj = {
             ids: ids,
             url: encodeURIComponent(res.data[0].url),
             name: name,
             listId: this.$route.query.id,
-            MusicIndex: index
+            MusicIndex: index,
+            artists: artists
           }
-        })
+          this.commit_playObj(obj)
+          this.$router.push({
+            name: 'play'
+          })
+        } else {
+          this.$message.error('获取播放链接失败')
+        }
       })
     }
   },
   computed: {
-    ...mapGetters(['get_topNm']),
-    topnm () {
-      return this.get_topNm
-    }
   }
 }
 
 </script>
-<style lang="less" scoped>
-#x-header {
-  background: #000;
-  position: fixed;
+<style lang="less">
+#artistPage{
   width: 100%;
-}
-
-.recommendList {
-  padding-top: 46px;
-  header {
-    padding: 10px;
-    background: rgba(100, 100, 100, 0.2);
-    .header-top {
-      display: flex;
-      align-items: top;
-      .coverImg {
-        height: 100px;
-        width: 100px;
-        flex: 1;
-      }
-      .listIntro {
-        flex: 2;
-        margin-left: 15px;
-        .listNm {
-          font-size: 14px;
-          font-weight: bold;
+  overflow: hidden;
+  .recommendList {
+    padding-top: 1rem;
+    header {
+      padding: .3rem .2rem;
+      background: #001529;
+      color: #fff;
+      .header-top {
+        display: flex;
+        align-items: top;
+        .coverImg {
+          height: 2rem;
+          width: 2rem;
+          flex: 0.8;
+        }
+        .listIntro {
+          flex: 2;
+          margin-left: .15rem;
+          .listNm {
+            font-size: .35rem;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            font-weight: bold;
+          }
         }
       }
+      .listDescription {
+        margin-top: .2rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        font-size: .25rem;
+      }
     }
-    .listDescription {
-      margin-top: 10px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 3;
-    }
-  }
-  .albumList {
-    display: flex;
-    padding: 10px;
-    box-shadow: 0 1px 1px #ddd;
-    span {
-      flex: 1;
-    }
-    p {
-      flex: 8;
-      padding-left: 15px;
-      .musicNm {
-        font-size: 13px;
-        font-weight: bolder;
+    .albumList {
+      display: flex;
+      padding: .2rem;
+      box-shadow: 0 .02rem .02rem #ddd;
+      span {
+        flex: 1;
+      }
+      p {
+        flex: 8;
+        padding-left: .15rem;
+        .musicNm {
+          font-size: .3rem;
+          font-weight: bolder;
+        }
       }
     }
   }

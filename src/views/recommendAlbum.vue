@@ -1,166 +1,181 @@
 <template>
-  <div>
-    <x-header id="x-header">歌单</x-header>
-    <div class="recommendList">
-      <header>
-        <div class="header-top">
-          <img :src="coverImgUrl" class="coverImg">
-          <div class="listIntro">
-            <p class="listNm">{{listNm}}</p>
-            <p class="nickname">
-              {{creator.nickname}}
-              <img src="/static/icon/right.png">
-            </p>
-            <p>
-              <span v-for="item in listTags">{{item}}#</span>
-            </p>
-          </div>
+  <div class="recommendList">
+    <pageHead></pageHead>
+    <header class="recommend-head">
+      <div class="header-top">
+        <img :src="coverImgUrl" class="coverImg">
+        <div class="listIntro">
+          <p class="listNm">{{listNm}}</p>
+          <Tag color="blue" class="nickName">
+            {{creator.nickname}}
+          </Tag>
+          <p>
+            <template v-for="(item,index) in listTags" v-if="index<4">
+              <Tag :color="colors[index]">{{item}}</Tag>
+            </template> 
+          </p>
         </div>
-        <div class="listDescription">{{listDescription}}</div>
-      </header>
-      <div v-for="(item,index) in albumList" class="albumList" @click="playMusic(index,item.id,item.artists.picUrl,item.name,item.artists)">
-        <img :src="item.album.picUrl">
-        <p>
-          <span class="musicNm">{{item.name}}</span>
-          <br>
-          <span class="musician">歌手：
-            <template v-for="(siginal,index) in item.artists" v-if="item.artists">{{siginal.name}}{{item.artists.length==(1+index)?'':'、'}}</template>
-          </span>
-          <br>
-          <span class="album">专辑：{{item.album.name}}</span>
-        </p>
       </div>
+      <div class="listDescription">{{listDescription}}</div>
+    </header>
+    <section>
+      <div v-for="(item,index) in albumList" class="albumList" @click="playMusic(index,item.id,item.artists.picUrl,item.name,item.artists)">
+      <img :src="item.album.picUrl">
+      <p>
+        <span class="musicNm">{{item.name}}</span>
+        <br>
+        <span class="musician">歌手：
+          <template v-for="(siginal,index) in item.artists" v-if="item.artists">{{siginal.name}}{{item.artists.length==(1+index)?'':'、'}}</template>
+        </span>
+        <br>
+        <span class="album">专辑：{{item.album.name}}</span>
+      </p>
     </div>
+    </section>
   </div>
 </template>
 <script>
-import { XHeader } from 'vux'
+import { Tag } from 'ant-design-vue'
 import { mapActions } from 'vuex'
 export default {
   components: {
-    XHeader
+    Tag
   },
   data () {
     return {
       albumList: [],
-      coverImgUrl: '',
+      coverImgUrl: require('@/assets/icon/alt.png'),
       creator: {},
       listNm: '',
       listDescription: '',
       listTags: [],
+      colors: ['#F50', '#2db7f5', '#87d068', '#108ee9'],
       musicid: '',
       musicurl: '',
       musicimg: ''
     }
   },
   methods: {
-    ...mapActions(['commit_artists', 'commit_topList']),
+    ...mapActions(['commit_topList', 'commit_playObj']),
     playMusic (index, ids, img, name, artists) {
       this.musicId = ids
       this.musicimg = img
-      this.http.$get({
-        url: this.$store.state.serveSrc + '/music/url',
+      this.$http.$get({
+        url: '/music/url',
         data: { id: this.musicId }
       }).then(res => {
-        this.commit_artists(artists)
-        this.$router.push({
-          name: 'play',
-          query: {
+        if (res) {
+          let obj = {
             ids: ids,
             url: encodeURIComponent(res.data[0].url),
             name: name,
             listId: this.$route.params.albumId,
-            MusicIndex: index
+            MusicIndex: index,
+            artists: artists
           }
-        })
+          this.commit_playObj(obj)
+          this.$router.push({
+            name: 'play'
+          })
+        } else {
+          this.$message.error('获取播放链接失败')
+        }
       })
     }
   },
   created () {
-    this.http.$get({
-      url: this.$store.state.serveSrc + '/playlist/detail?id=' + this.$route.params.albumId,
+    this.$http.$get({
+      url: '/playlist/detail?id=' + this.$route.params.albumId,
       data: {}
     }).then(res => {
-      this.coverImgUrl = res.result.coverImgUrl
-      this.creator = res.result.creator
-      this.listNm = res.result.name
-      this.listTags = res.result.tags
-      this.listDescription = res.result.description
-      this.albumList = res.result.tracks
-      this.commit_topList(this.albumList)
+      if (res) {
+        this.coverImgUrl = res.result.coverImgUrl
+        this.creator = res.result.creator
+        this.listNm = res.result.name
+        this.listTags = res.result.tags
+        this.listDescription = res.result.description
+        this.albumList = res.result.tracks
+        this.commit_topList(this.albumList)
+      } else {
+        this.$message.error('获取歌单详情失败')
+      }
     })
   },
   computed: {}
 }
 
 </script>
-<style lang="less" scoped>
-#x-header {
-  background: #000;
-  position: fixed;
-  width: 100%;
-}
-
+<style lang="less">
 .recommendList {
-  padding-top: 46px;
-  header {
-    padding: 10px;
-    background: rgba(100, 100, 100, 0.2);
+  width: 100%;
+  overflow: hidden;
+  .recommend-head {
+    margin-top: 1rem;
+    padding: .2rem;
+    background: #001529;
+    height: fit-content;
+    color: #fff;
+    position: fixed;
+    z-index: 2;
     .header-top {
       display: flex;
       align-items: top;
       .coverImg {
-        height: 100px;
-        width: 100px;
+        height: 2rem;
+        width: 2rem;
         flex: 1;
       }
       .listIntro {
         flex: 2;
-        margin-left: 15px;
+        margin-left: .15rem;
         .listNm {
-          font-size: 14px;
+          margin: 0;
+          font-size: .35rem;
           font-weight: bold;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
         }
-        .nickname {
-          border-radius: 10px;
-          margin: 5px 0;
-          padding: 1px 5px;
-          display: inline-block;
-          background: rgba(256, 256, 256, 0.8);
-          background-repeat: no-reapeat;
-          img {
-            height: 10px;
-          }
+        .nickName {
+          margin: .1rem 0;
         }
       }
     }
     .listDescription {
-      margin-top: 10px;
+      margin-top: .2rem;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
+      font-size: .25rem;
     }
+  }
+  section{
+    position: absolute;
+    top: 4.3rem; 
   }
   .albumList {
     display: flex;
-    padding: 10px;
-    box-shadow: 0 1px 1px #ddd;
+    padding: .2rem;
+    box-shadow: 0 .01rem .01rem #ddd;
     img {
-      flex: 1;
-      height: 35px;
-      width: 35px;
+      height: 2rem;
+      width: 2rem;
     }
     p {
-      flex: 8;
-      padding-left: 10px;
+      flex: 1;
+      padding-left: .2rem;
+      margin: 0;
       .musicNm {
-        font-size: 13px;
+        font-size: .4rem;
         font-weight: bolder;
       }
       .musician,
       .album {
+        font-size: .3rem;
         color: #666;
         overflow: hidden;
         text-overflow: ellipsis;

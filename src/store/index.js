@@ -3,13 +3,21 @@ import Vuex from 'vuex'
 import toast from './module/toast'
 Vue.use(Vuex)
 const state = {
-  serveSrc: 'http://localhost:8080/api',
   // header标题
-  topNm: '',
+  topNm: '歌单',
   // 作者
   artists: [],
   // 播放列表
   topList: [],
+  // 播放页初始化参数
+  playObj: {
+    ids: '',
+    url: '',
+    name: '',
+    listId: '',
+    MusicIndex: '',
+    artists: []
+  },
   // 播放url
   ids: ''
 }
@@ -23,26 +31,22 @@ const getters = {
   get_topNm: (state) => {
     return state.topNm
   },
-  get_ids: (state) => {
-    return state.ids
-  }
+  get_playObj: (state) => {
+    return state.playObj
+  },
 }
 const mutations = {
   update_artists (state, obj) {
-    // Object.assign(state.topList, obj)
     state.artists = obj
   },
   update_topList (state, obj) {
-    // Object.assign(state.topList, obj)
     state.topList = obj
   },
   update_topNm (state, obj) {
-    // Object.assign(state.topList, obj)
     state.topNm = obj
   },
-  update_ids (state, obj) {
-    // Object.assign(state.topList, obj)
-    state.ids = obj
+  update_playObj (state, obj) {
+    Object.assign(state.playObj, obj)
   }
 }
 const actions = {
@@ -51,6 +55,9 @@ const actions = {
   },
   commit_topList (context, obj) {
     context.commit('update_topList', obj)
+  },
+  commit_playObj(context, obj) {
+    context.commit('update_playObj', obj)
   }
 }
 const store = new Vuex.Store({

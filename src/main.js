@@ -1,21 +1,27 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
-import App from './App'
-import router from './router'
-import store from  './store'
-import publicVar from '@/mixin/global' 
-import axios from './lib/http'
+import App from './App.vue'
+import router from '@/router/index'
+import store from '@/store/index' 
+import axios from '@/lib/http'
+import { message } from 'ant-design-vue'
+import 'ant-design-vue/dist/antd.css'
+import PageHead from '@/components/header/pageHead'
 
 Vue.config.productionTip = false
-Vue.prototype.GLOBAL = publicVar
-Vue.prototype.http = axios
+// 全局绑定axios
+Vue.prototype.$http = axios
+// 全局气泡组件
+message.config({
+  top: `50%`,
+  duration: 2,
+  maxCount: 3,
+});
+Vue.prototype.$message = message
+// 全局头部导航条
+Vue.use(PageHead)
 
-/* eslint-disable no-new */
 new Vue({
-  el: '#app',
   router,
   store,
-  components: { App },
-  template: '<App/>'
-})
+  render: h => h(App)
+}).$mount('#app')

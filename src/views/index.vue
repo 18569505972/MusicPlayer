@@ -1,13 +1,13 @@
 <template>
-  <div>
+  <div id="indexPag">
     <header>
-      <tab>
-        <tab-item selected @click.native="introList">推荐</tab-item>
-        <tab-item @click.native="topList">排行榜</tab-item>
-        <tab-item @click.native="getMusicianList">歌手</tab-item>
-      </tab>
+      <Row class="headerContainer" type="flex" justify="center" align="middle">
+        <Col span="8" :class="['tabChoose',activeKey==1?'choosed':'']" @click="changeTab(1)">推荐</Col>
+        <Col span="8" :class="['tabChoose',activeKey==2?'choosed':'']" @click="changeTab(2)">排行榜</Col>
+        <Col span="8" :class="['tabChoose',activeKey==3?'choosed':'']" @click="changeTab(3)">歌手</Col>
+      </Row>
     </header>
-    <section v-show="isIntro==1" class="recommendSection">
+    <section v-show="activeKey==1" class="recommendSection">
       <div v-for="item in recommengList" class="recommendList" @click="jumpRecommendAlbum(item.id)">
         <img :src="item.picUrl" class="recommengPic">
         <div>
@@ -16,29 +16,29 @@
         </div>
       </div>
     </section>
-    <section v-show="isIntro==2">
+    <section v-show="activeKey==2" class="topSection">
       <div class="official">
-        <p class="topNm" style="margin-top:10px;">官方榜</p>
+        <p class="topNm">官方榜</p>
         <div class="topClass" @click="jumpTopList(0,'新歌榜')">
-          <div><img src="/static/images/0newMusicList.jpg"></div>
+          <div><img src="@/assets/images/0newMusicList.jpg"></div>
           <article>
             <p v-for="(item,index) in newList">{{index+1}}、{{item.name}}-<span v-for="arNm in item.ar.slice(0,1)" v-if="arNm.name">{{arNm.name}}</span></p>
           </article>
         </div>
         <div class="topClass" @click="jumpTopList(1,'热歌榜')">
-          <div><img src="/static/images/1hotMusicList.jpg"></div>
+          <div><img src="@/assets/images/1hotMusicList.jpg"></div>
           <article>
             <p v-for="(item,index) in hotList">{{index+1}}、{{item.name}}-<span v-for="arNm in item.ar.slice(0,1)" v-if="arNm.name">{{arNm.name}}</span></p>
           </article>
         </div>
         <div class="topClass" @click="jumpTopList(2,'原创榜')">
-          <div><img src="/static/images/2createMusicList.jpg"></div>
+          <div><img src="@/assets/images/2createMusicList.jpg"></div>
           <article>
             <p v-for="(item,index) in createList">{{index+1}}、{{item.name}}-<span v-for="arNm in item.ar.slice(0,1)" v-if="arNm.name">{{arNm.name}}</span></p>
           </article>
         </div>
         <div class="topClass" @click="jumpTopList(3,'飙升榜')">
-          <div><img src="/static/images/3upMusicList.jpg"></div>
+          <div><img src="@/assets/images/3upMusicList.jpg"></div>
           <article>
             <p v-for="(item,index) in upList">{{index+1}}、{{item.name}}-<span v-for="arNm in item.ar.slice(0,1)" v-if="arNm.name">{{arNm.name}}</span></p>
           </article>
@@ -47,62 +47,64 @@
       <div class="earth">
         <p class="topNm">全球榜</p>
         <div class="earthList">
-          <p class="leftNm mNcom" @click="jumpTopList(23,'嘻哈榜')"><img src="/static/images/hiphap.jpg"></p>
-          <p class="middleNm mNcom" @click="jumpTopList(8,'电音榜')"><img src="/static/images/electric.jpg"></p>
-          <p class="rightNm mNcom" @click="jumpTopList(22,'ACG音乐榜')"><img src="/static/images/ACG.jpg"></p>
+          <p class="leftNm mNcom" @click="jumpTopList(23,'嘻哈榜')"><img src="@/assets/images/hiphap.jpg"></p>
+          <p class="middleNm mNcom" @click="jumpTopList(8,'电音榜')"><img src="@/assets/images/electric.jpg"></p>
+          <p class="rightNm mNcom" @click="jumpTopList(22,'ACG音乐榜')"><img src="@/assets/images/ACG.jpg"></p>
         </div>
         <div class="earthList">
-          <p class="leftNm mNcom" @click="jumpTopList(4,'云音乐新电力榜')"><img src="/static/images/4electricMusicList.jpg"></p>
-          <p class="middleNm mNcom" @click="jumpTopList(17,'金典音乐榜')"><img src="/static/images/classical.jpg"></p>
-          <p class="rightNm mNcom" @click="jumpTopList(21,'电竞音乐榜')"><img src="/static/images/game.jpg"></p>
+          <p class="leftNm mNcom" @click="jumpTopList(4,'云音乐新电力榜')"><img src="@/assets/images/4electricMusicList.jpg"></p>
+          <p class="middleNm mNcom" @click="jumpTopList(17,'金典音乐榜')"><img src="@/assets/images/classical.jpg"></p>
+          <p class="rightNm mNcom" @click="jumpTopList(21,'电竞音乐榜')"><img src="@/assets/images/game.jpg"></p>
         </div>
         <div class="earthList">
-          <p class="leftNm mNcom" @click="jumpTopList(7,'KTV唛榜')"><img src="/static/images/7KTVMusicList.jpg"></p>
+          <p class="leftNm mNcom" @click="jumpTopList(7,'KTV唛榜')"><img src="@/assets/images/7KTVMusicList.jpg"></p>
           <p class="middleNm mNcom"></p>
           <p class="rightNm mNcom"></p>
         </div>
       </div>
     </section>
-    <section v-show="isIntro==3">
+    <section v-show="activeKey==3">
       <div v-for="(item,index) in musicianList" class="musicianList" @click="jumpMusicianList(item.id,item.name)">
         <span style="width:30px;text-align:center;">{{index+1+'、'}}</span>
         <p class="imgBox"><img :src="item.img1v1Url"></p>
         <div>
           {{item.name}}
         </div>
-        <img src="/static/icon/right.png" class="right">
+        <img src="../assets/icon/right.png" class="right">
       </div>
     </section>
   </div>
 </template>
 <script>
-import { Tab, TabItem, Flexbox, FlexboxItem } from 'vux'
+import { Col, Row } from 'ant-design-vue'
 import { mapMutations } from 'vuex'
 export default {
   components: {
-    Tab,
-    TabItem,
-    Flexbox,
-    FlexboxItem
+    Col,
+    Row
   },
   data () {
     return {
       recommengList: [],
-      isIntro: 1,
       newList: [],
       hotList: [],
       createList: [],
+      activeKey:1,
       upList: [],
       musicianList: []
     }
   },
   created () {
     // 获取推荐歌单
-    this.http.$get({
-      url: this.$store.state.serveSrc + '/personalized',
+    this.$http.$get({
+      url: '/personalized',
       data: {}
     }).then(res => {
-      this.recommengList = res.result
+      if (res) {
+        this.recommengList = res.result
+      } else {
+        this.$message.error('获取推荐歌单失败')
+      }
     })
   },
   methods: {
@@ -115,54 +117,71 @@ export default {
         }
       })
     },
+    changeTab(num){
+     this.activeKey = num
+     if(num == 2) {
+        this.topList()
+      } else if(num == 3) {
+        this.getMusicianList()
+      }
+    },
     topList () {
-      this.isIntro = 2
-      if (!this.newList[0]) {
-        this.http.$get({
-          url: this.$store.state.serveSrc + '/top/list',
+      if (this.newList.length<=0) {
+        this.$http.$get({
+          url: '/top/list',
           data: { idx: 0, type: 2 }
-        }).then(res1 => {
-          this.newList = res1
-        }).catch(err => {
-          alert(0 + err)
+        }).then(res => {
+          if (res) {
+            this.newList = res
+          } else {
+            this.$message.error('获取排行榜失败')
+          }
         })
-        this.http.$get({
-          url: this.$store.state.serveSrc + '/top/list',
+        this.$http.$get({
+          url: '/top/list',
           data: { idx: 1, type: 2 }
-        }).then(res1 => {
-          this.hotList = res1
-        }).catch(err => {
-          alert(0 + err)
+        }).then(res => {
+          if (res) {
+            this.hotList = res
+          } else {
+            this.$message.error('获取排行榜失败')
+          }
         })
-        this.http.$get({
-          url: this.$store.state.serveSrc + '/top/list',
+        this.$http.$get({
+          url: '/top/list',
           data: { idx: 2, type: 2 }
-        }).then(res1 => {
-          this.createList = res1
-        }).catch(err => {
-          alert(0 + err)
+        }).then(res => {
+          if (res) {
+            this.createList = res
+          } else {
+            this.$message.error('获取排行榜失败')
+          }
         })
-        this.http.$get({
-          url: this.$store.state.serveSrc + '/top/list',
+        this.$http.$get({
+          url: '/top/list',
           data: { idx: 3, type: 2 }
-        }).then(res1 => {
-          this.upList = res1
-        }).catch(err => {
-          alert(0 + err)
+        }).then(res => {
+          if (res) {
+            this.upList = res
+          } else {
+            this.$message.error('获取排行榜失败')
+          }
         })
       }
     },
     getMusicianList () {
-      this.isIntro = 3
-      this.http.$get({
-        url: this.$store.state.serveSrc + '/toplist/artist',
-        data: {}
-      }).then(res => {
-        this.musicianList = res.list.artists
-      })
-    },
-    introList () {
-      this.isIntro = 1
+      if(this.musicianList.length<=0){
+        this.$http.$get({
+          url: '/toplist/artist',
+          data: {}
+        }).then(res => {
+          if (res) {
+            this.musicianList = res.list.artists
+          } else {
+            this.$message.error('获取歌手榜失败')
+          }
+        })
+      }
     },
     jumpTopList (idx, topNm) {
       this.update_topNm(topNm)
@@ -187,103 +206,128 @@ export default {
 }
 
 </script>
-<style lang="less" scoped>
-header {
-  position: fixed;
-  width: 100%
-}
-
-section {
-  padding-top: 44px;
-  background: rgba(0, 0, 0, 0.1);
-  .recommendList,
-  .musicianList {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-    padding: 0 5px;
-    background: #fff;
-    .recommengPic {
-      height: 80px;
-      width: 80px;
-      flex: 1;
+<style lang="less">
+#indexPag{
+  width: 100%;
+  overflow: hidden;
+  header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 1rem;
+    .headerContainer{
+      height: 1rem;
+      background:#1989F0;
+      color: rgba(255, 255, 255, 0.65);
     }
-    .imgBox {
-      height: 40px;
-      width: 40px;
-      flex: 0.5;
-    }
-    div {
-      flex: 3;
-      padding-left: 5px;
-    }
-  }
-  .musicianList {
-    font-size: 15px;
-    font-weight: bolder;
-    img {
-      width: 40px;
-      height: 40px;
-    }
-    .right {
-      width: 20px;
-      height: 20px;
-    }
-  }
-  .topNm {
-    font-size: 14px;
-    text-align: center;
-    height: 40px;
-    line-height: 40px;
-    font-weight: bold
-  }
-  .topClass {
-    margin-bottom: 10px;
-    background: #fff;
-    display: flex;
-    div {
-      flex: 1;
-      font-size: 0;
-    }
-    img {
-      width: 96%;
-    }
-    article {
-      flex: 2;
-      align-self: center;
-      p {
-        display: -webkit-box;
-        padding: 0 10px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 1;
-      }
-      p:nth-child(2) {
-        padding: 15px 10px;
-      }
-    }
-  }
-  .earthList {
-    background: #fff;
-    display: flex;
-    padding: 10px 0;
-    .mNcom {
-      flex: 1;
-      font-size: 0;
-    }
-    .leftNm {
-      text-align: left;
-    }
-    .middleNm {
+    .tabChoose{
       text-align: center;
+      height: 1rem;
+      line-height: 1rem;
     }
-    .rightNm {
-      text-align: right;
+    .choosed{
+      background: #00a0e9;
+      color: #fff;
     }
-    img {
-      width: 95%;
+  }
+
+  section {
+    padding-top: 1rem;
+    background: #222222;
+    .recommendList,
+    .musicianList {
+      display: flex;
+      align-items: center;
+      margin-top: .2rem;
+      padding: 0 .1rem;
+      background: #001529;
+      color: #fff;
+      .recommengPic {
+        width: 2.5rem;
+        flex: 1.5;
+      }
+      .imgBox {
+        height: 1rem;
+        width: 1rem;
+        flex: 0.5;
+        margin: 0;
+      }
+      div {
+        flex: 3;
+        padding-left: .05rem;
+      }
+    }
+    .musicianList {
+      font-size: .4rem;
+      font-weight: bolder;
+      img {
+        width: 1rem;
+        height: 1rem;
+      }
+      .right {
+        width: .5rem;
+        height: .5rem;
+      }
+    }
+    .topNm {
+      font-size: .5rem;
+      text-align: center;
+      height: 1.5rem;
+      line-height: 1.5rem;
+      font-weight: bold;
+      color: #fff;
+      margin: 0;
+    }
+    .topClass {
+      margin-top: .2rem;
+      background: #001529;
+      display: flex;
+      div {
+        flex: 1;
+        font-size: 0;
+      }
+      img {
+        width: 96%;
+      }
+      article {
+        flex: 2;
+        align-self: center;
+        color: #fff;
+        p {
+          margin:0;
+          display: -webkit-box;
+          margin: 0 .2rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-break: break-all;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
+        }
+        p:nth-child(2) {
+          margin: .25rem .2rem;
+        }
+      }
+    }
+    .earthList {
+      background: #001529;
+      display: flex;
+      padding: .2rem 0;
+      .mNcom {
+        flex: 1;
+        font-size: 0;
+      }
+      .leftNm {
+        text-align: left;
+      }
+      .middleNm {
+        text-align: center;
+      }
+      .rightNm {
+        text-align: right;
+      }
+      img {
+        width: 95%;
+      }
     }
   }
 }

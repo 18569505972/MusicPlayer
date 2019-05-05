@@ -1,7 +1,7 @@
 import axios from 'axios'
 import qs from 'qs'
 var instance = axios.create({
-  baseURL: 'http://114.115.139.24:80',
+  baseURL: 'http://localhost:3000/api',
   timeout: 20000,
   // `withCredentials` 表示跨域请求时是否需要使用凭证
   withCredentials: false, // 默认的
@@ -36,7 +36,7 @@ const $post = function({ url, data = {}, headerObj = {} }) {
     }
     return data
   }).catch(error => {
-    alert('网络不给力')
+    console.log('网络不给力' + error)
   })
 }
 const $get = function({ url, data = {}, headerObj = {} }) {
@@ -57,7 +57,7 @@ const $get = function({ url, data = {}, headerObj = {} }) {
     }
     return JSON.parse(res.data)
   }).catch(error => {
-    alert('网络不给力' + error)
+    console.log('网络不给力' + error)
   })
 }
 export default { $get, $post, axios }
